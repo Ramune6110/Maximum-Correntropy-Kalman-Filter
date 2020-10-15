@@ -37,36 +37,36 @@ for Numexper = 1:num_of_exprement
     
     %% one time simulation
     for t = 1 : 1 : iter
-        % make the measurement signal
+        %%  ======================= Observation =======================
         z = B*x;
         z = z + MeasErrZ(:,t);
 
-        %%  ======================= C_Filter ========================
+       %%  ======================= C_Filter ========================
         xhat2         = CF(xhat2, z, A, B);
         xhat_CF(:, t) = xhat2;
         
-        %% ======================= MCC_kf ========================
+       %% ======================= MCC_kf ========================
         [xhat3, P_MCC_KF] = MCCCF(xhat3, P_MCC_KF, z, A, B, Q, R, num_vec);
         xhat_MCC_KF(:, t) = xhat3;
         
-        %% ======================= Unscented Kalman Filter (UKF) ========================
+       %% ======================= Unscented Kalman Filter (UKF) ========================
         [xhat4, P_UKF] = UKF(F, xhat4, P_UKF, H, z, Q, R);
         xhat_UKF(:, t) = xhat4;
         
-        %% ======================= Ensemble Kalman Filter(EnKF) =====================
+       %% ======================= Ensemble Kalman Filter(EnKF) =====================
         [xhat6, X_enkf] = EnKF(X_enkf, z, A, B, Q, R, N_Enkf);
         xhat_EnKF(:, t) = xhat6;
 
-        %% ========================= Adaptive Gaussian Sum Filter (GSF) ==================
+       %% ========================= Adaptive Gaussian Sum Filter (GSF) ==================
         [xhat7, P_GSF] = GSF(xhat7, P_GSF, z, A, B, Q, R, num_vec, num_meas);
         xhat_GSF(:, t) = xhat7;
 
-        %% ===========================  MC_Filter ==============================
+       %% ===========================  MC_Filter ==============================
         xhat8          = MCF(xhat8, z, A, B, Q, R, num_vec);
         xhat_MCF(:, t) = xhat8;
 
-        %% Simulate the system.
-        x = A * x + MeasErrX(:,t);
+       %% Simulate the system.
+        x = A * x + MeasErrX(:, t);
         x_main(:, t + 1) = x;
     end
     
