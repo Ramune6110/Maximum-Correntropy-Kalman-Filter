@@ -3,7 +3,7 @@ close all
 clc
 
 %% call system dynamic
-sysinfo;
+Init_System;
 
 %% Choice the type of noise
 while true
