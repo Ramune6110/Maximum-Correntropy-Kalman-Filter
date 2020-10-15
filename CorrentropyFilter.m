@@ -5,14 +5,6 @@ clc
 %% call system dynamic
 sysinfo;
 
-%% initiallization
-tf = 300;
-iter = floor(tf/T); % length of signal
-num_of_exprement = 100 ; % number of itterations
-num_shot_noise = 15;
-start_of_shotnoise = 60;
-index_rand_shot = [randi([start_of_shotnoise/T iter],1,num_shot_noise-1) 21];
-
 %% Choice the type of noise
 while true
     flag_noise = input('Please choose the type of noise (1 = shot noise, 2 = Gaussian mixture noise): ');
@@ -28,47 +20,13 @@ SE_EnKF   = zeros(num_of_exprement,num_vec,iter);
 SE_GSF    = zeros(num_of_exprement,num_vec,iter);
 SE_MCF    = zeros(num_of_exprement,num_vec,iter);
 
-% 100 Monte Carlo simulation
+%% 100 Monte Carlo simulation
 for Numexper = 1:num_of_exprement
     
     disp(['Simulation # ',num2str(Numexper.'),'/',num2str(num_of_exprement)]);
-   
-    % noise
-    Q = Q_n1;  
-    R = R_n1;
-    MeasErrX = sqrt(Q)*randn(num_vec,iter);
-    MeasErrZ = sqrt(R)*randn(num_meas,iter);
     
-    % initial conditions for system and estimator(x0 , xhat0)
-    x     = initial_x; % real states
-    xhat2 = initial_x; % (CF): C-Filter By cinar 2012
-    xhat3 = initial_x; % (MCC_KF) : second Algorithm (Weighted maximum correntropy)
-    xhat4 = initial_x; % (UKF)
-    xhat6 = initial_x; % (EnKF)
-    xhat7 = initial_x; % (GSF)
-    xhat8 = initial_x; % (MCF) : first Algorithm (Modified C-filter)
-    
-    % elements of initial estimation error covariance (P0hat)
-    P_MCC_KF = initial_P;  % (MCC_KF)
-    P_UKF    = initial_P;  % (UKF)
-    P_EnKF   = initial_P;  % (EnKF)
-    P_GSF    = initial_P;  % (GSF)
-    
-    %%initialization of the estimators
-    % number of samples in Enkf
-    N_Enkf = 100;
-    no = sqrt(P_EnKF) * repmat(randn(size(xhat6)),1,N_Enkf);
-    X_enkf = repmat(xhat6,1,N_Enkf) + no;
-    
-    %% define some arrays to store the main signal and the esitimation signals
-    xhat_CF     = zeros(num_vec,iter); %(C-Filter)
-    xhat_MCC_KF = zeros(num_vec,iter); % (MCC_KF)
-    xhat_UKF    = zeros(num_vec,iter); % (UKF)
-    xhat_EnKF   = zeros(num_vec,iter); % (EnKF)
-    xhat_GSF    = zeros(num_vec,iter); % (GSF)
-    xhat_MCF    = zeros(num_vec,iter); % (Modified C-Filter)
-    x_main      = zeros(num_vec,iter);
-    %x_main(:,1) = x ; %  (main signal)
+    %% Simulation Init Paramter
+    Init_Parameter;
     
     %% type of noise
     if flag_noise == 1
@@ -104,28 +62,15 @@ for Numexper = 1:num_of_exprement
         xhat_GSF(:, t) = xhat7;
 
         %% ===========================  MC_Filter ==============================
-%         xhat8      = A * xhat8;
-%         innov      = z - B * xhat8;
-%         norm_innov = sqrt((innov)'*(innov));
-%         sigma      = 1 * norm_innov;
-%         K1         = exp(-(norm_innov)^2/(2*sigma^2));
-%         Gain       = pinv(eye(num_vec)+ K1 * B'*B )*K1 * B';
-%         xhat8      = xhat8 + Gain *(innov);
-%         innov      = z - B * xhat8;
-%         norm_innov = sqrt((innov)'*(innov));
-%         sigma      = 1 * norm_innov;
-%         K1         = exp(-(norm_innov)^2/(2*sigma^2));
-%         Gain       = pinv(eye(num_vec)+ K1* B'*B )*K1 * B';
-%         xhat8      = xhat8 + Gain *(innov);
-        xhat8 = MCF(xhat8, z, A, B, Q, R, num_vec);
-        
+        xhat8          = MCF(xhat8, z, A, B, Q, R, num_vec);
         xhat_MCF(:, t) = xhat8;
+
         %% Simulate the system.
-        x = A*x + MeasErrX(:,t);
+        x = A * x + MeasErrX(:,t);
         x_main(:, t + 1) = x;
-        
     end
-    x_main(:,iter) = [];
+    
+    x_main(:, iter) = [];
     
     SE_CF(Numexper,:,:)     = (x_main - xhat_CF).^2;
     SE_MCC_KF(Numexper,:,:) = (x_main - xhat_MCC_KF).^2;
@@ -171,32 +116,6 @@ max_MCF    = max(MSE_MCF.');
 max_MCC_KF = max(MSE_MCC_KF.');
 max_EnKF   = max(MSE_EnKF.');
 max_GSF    = max(MSE_GSF.');
-NRMSE      = zeros(1,6);
-
-j = 1;
-for i = 1:4
-    NRMSE(1,j) = NRMSE(1,j) + MMSE_UKF(i,1)/ max_UKF(1,i);
-end
-j = 2;
-for i = 1:4
-    NRMSE(1,j) =NRMSE(1,j) + MMSE_GSF(i,1)/ max_GSF(1,i);
-end
-j = 3;
-for i = 1:4
-    NRMSE(1,j) = NRMSE(1,j) + MMSE_EnKF(i,1)/ max_EnKF(1,i);
-end
-j = 4;
-for i = 1:4
-    NRMSE(1,j) = NRMSE(1,j) + MMSE_CF(i,1)/ max_CF(1,i);
-end
-j = 5;
-for i = 1:4
-    NRMSE(1,j) = NRMSE(1,j) + MMSE_MCF(i,1)/ max_MCF(1,i);
-end
-j = 6;
-for i = 1:4
-    NRMSE(1,j) = NRMSE(1,j) + MMSE_MCC_KF(i,1)/ max_MCC_KF(1,i);
-end
 
 %% Plot data.
 close all
