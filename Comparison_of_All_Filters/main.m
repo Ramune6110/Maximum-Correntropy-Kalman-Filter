@@ -124,9 +124,9 @@ t = 0 : T : tf-T;
 c = 3;
 
 if flag_noise == 1 % ploting in Shot noise case
-    figure,
-      xlabel('time'), ylabel('Value of shot noise')
-
+    figure(1);
+    xlabel('time');
+    ylabel('Value of shot noise');
     hold on
     X = index_rand_shot;
     Y = MeasErrZ(1,index_rand_shot(1:end));
@@ -134,22 +134,42 @@ if flag_noise == 1 % ploting in Shot noise case
         bar(X(i)*T,Y(i),1,'b','EdgeColor','b');
     end
     
-    figure
+    figure(2);
     hold on
-    plot(t,MSE_CF(c,:) ,'r',t,MSE_MCC_KF(c,:) ,'g');legend('C-Filter','MCC-KF'),xlabel('time'), ylabel('Root mean square error')
+    plot(t,MSE_CF(c,:) ,'r','LineWidth',1.0);
+    plot(t,MSE_MCF(c,:) ,'b','LineWidth',1.0);
+    plot(t,MSE_MCC_KF(c,:) ,'g','LineWidth',1.0);
+    plot(t,MSE_GSF(c,:) ,'m','LineWidth',1.0);
+    plot(t,MSE_UKF(c,:) ,'k','LineWidth',1.0);
+    plot(t,MSE_EnKF(c,:) ,'c','LineWidth',1.0);
+    grid on;
+    legend('CF','MCF','MCCKF', 'GSF', 'UKF', 'EnKF','Location','best');
+    xlabel('time');
+    ylabel('Root mean square error');
 
 else % ploting in mixture guassian noise case
       
     f1 =  @(s) 1/sqrt(2*pi*sqrt(Q_n1(1,1)))*(exp((-(s-mu_n1_x(1,1))*(s-mu_n1_x(1,1)))/(2*sqrt(Q_n1(1,1))))+exp((-(s-mu_n2_x(1,1))*(s-mu_n2_x(1,1)))/(2*sqrt(Q_n2(1,1)))));
     f2 =  @(s) 1/sqrt(2*pi*sqrt(R_n1(1,1)))*(exp((-(s-mu_n1_z(1,1))*(s-mu_n1_z(1,1)))/(2*sqrt(R_n1(1,1))))+exp((-(s-mu_n2_z(1,1))*(s-mu_n2_z(1,1)))/(2*sqrt(R_n2(1,1)))));
     
-    figure
-    subplot(2,1,1),fplot(f1,[-6,6]);title('pdf of process noise')
-    subplot(2,1,2),fplot(f2,[-6,6]);title('pdf of measurment noise')
+    figure(1);
+    subplot(2,1,1);
+    fplot(f1,[-6,6]);title('pdf of process noise');
+    subplot(2,1,2);
+    fplot(f2,[-6,6]);title('pdf of measurment noise');
     
-    figure
+    figure(2);
     hold on
-    plot(t,MSE_CF(c,:) ,'r',t,MSE_MCC_KF(c,:) ,'g'); legend('C-Filter','MCC-KF'),xlabel('time'), ylabel('Root mean square error')
+    plot(t,MSE_CF(c,:) ,'r','LineWidth',1.0);
+    plot(t,MSE_MCF(c,:) ,'b','LineWidth',1.0);
+    plot(t,MSE_MCC_KF(c,:) ,'g','LineWidth',1.0);
+    plot(t,MSE_GSF(c,:) ,'m','LineWidth',1.0);
+    plot(t,MSE_UKF(c,:) ,'k','LineWidth',1.0);
+    plot(t,MSE_EnKF(c,:) ,'c','LineWidth',1.0);
+    grid on;
+    legend('CF','MCF','MCCKF', 'GSF', 'UKF', 'EnKF','Location','best');
+    xlabel('time');
+    ylabel('Root mean square error');
 end
 
 %% Table result
