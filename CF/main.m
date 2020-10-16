@@ -67,8 +67,8 @@ for Numexper = 1:num_of_exprement
     xEst  = initial_x; % (CF): C-Filter By cinar 2012
 
     % define some arrays to store the main signal and the esitimation signals
-    xhat_CF = zeros(num_vec,iter); %(C-Filter)
-    x_main  = zeros(num_vec,iter);
+    xEst_CF = zeros(num_vec,iter); %(C-Filter)
+    X_TRUE  = zeros(num_vec,iter);
     
     %% type of noise
     if flag_noise == 1
@@ -85,15 +85,15 @@ for Numexper = 1:num_of_exprement
 
        %%  ======================= C_Filter ========================
         xEst = CF(xEst, z, A, B);
-        xhat_CF(:, t) = xEst;
+        xEst_CF(:, t) = xEst;
 
        %% ======================= The System ========================
         xTrue = A * xTrue + MeasErrX(:, t);
-        x_main(:, t + 1) = xTrue;
+        X_TRUE(:, t + 1) = xTrue;
     end
     
-    x_main(:, iter)   = [];
-    MSE(Numexper,:,:) = (x_main - xhat_CF).^2;
+    X_TRUE(:, iter)   = [];
+    MSE(Numexper,:,:) = (X_TRUE - xEst_CF).^2;
 end
 
 %% RMSE
@@ -103,9 +103,9 @@ for i = 1 : iter
     RMSE(:,i) = sqrt(mean(MSE(:,:,i)))';
 end
 
-MMSE_CF  = mean(RMSE,2);
-MMMSE_CF = mean(MMSE_CF);
-max_CF   = max(RMSE.');
+MMSE  = mean(RMSE,2);
+MMMSE = mean(MMSE);
+max   = max(RMSE.');
 
 %% Plot data
 DrowGraph(T, tf, flag_noise, num_shot_noise, index_rand_shot, mu_n1_x, mu_n2_x, mu_n1_z, mu_n2_z, R_n1, R_n2, Q_n1, Q_n2, MeasErrZ, RMSE);
@@ -113,7 +113,7 @@ DrowGraph(T, tf, flag_noise, num_shot_noise, index_rand_shot, mu_n1_x, mu_n2_x, 
 %% Table result
 disp('Mean square error : ');
 disp('           x1          x2          x3        x4');
-disp(['CF     : ',num2str(MMSE_CF.'),'']);
+disp(['CF     : ',num2str(MMSE.'),'']);
 
 %% C_Filter
 function xEst = CF(xEst, z, A, B)
