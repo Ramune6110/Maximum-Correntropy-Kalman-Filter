@@ -7,8 +7,8 @@ Init_System;
 
 %% Choice the type of noise
 while true
-    flag_noise = input('Please choose the type of noise (1 = shot noise, 2 = Gaussian mixture noise): ');
-    if flag_noise == 1 || flag_noise == 2
+    flag_noise = input('Please choose the type of noise (1 = shot noise, 2 = Gaussian mixture noise, 3 = Gaussian noise): ');
+    if flag_noise == 1 || flag_noise == 2 || flag_noise == 3
         break;
     end
 end
@@ -31,8 +31,10 @@ for Numexper = 1:num_of_exprement
     %% type of noise
     if flag_noise == 1
         Shot_Noise; 
-    else
+    elseif flag_noise == 2
         Mix_Noise; 
+    else 
+        Gaussian_Noise;
     end
     
     %% one time simulation
