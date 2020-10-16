@@ -18,7 +18,6 @@ B =[1 0 0 0  % meaurment equation
 
 initial_x = [1;1;0;0]; % initial of state vector X
 initial_P = diag([4,4,3,3]);% initial of cov matrix P
-xEst      = initial_x; % (EnKF)
 PEst      = initial_P;  % (MCC_KF)
 
 %% Mix_Noise
@@ -41,11 +40,6 @@ num_of_exprement   = 100; % number of itterations
 num_shot_noise     = 15;
 start_of_shotnoise = 60;
 index_rand_shot    = [randi([start_of_shotnoise/T iter],1,num_shot_noise-1) 21];
-
-%% number of samples in Enkf
-N_Enkf = 100;
-no = sqrt(PEst) * repmat(randn(size(xEst)),1,N_Enkf);
-X_enkf = repmat(xEst,1,N_Enkf) + no;
 
 %% Choice the type of noise
 while true
@@ -76,6 +70,11 @@ for Numexper = 1:num_of_exprement
     % define some arrays to store the main signal and the esitimation signals
     xEst_MCC = zeros(num_vec,iter); %(C-Filter)
     X_TRUE   = zeros(num_vec,iter);
+    
+    %% number of samples in Enkf
+    N_Enkf = 100;
+    no = sqrt(PEst) * repmat(randn(size(xEst)),1,N_Enkf);
+    X_enkf = repmat(xEst,1,N_Enkf) + no;
     
     %% type of noise
     if flag_noise == 1
