@@ -37,7 +37,7 @@ for Numexper = 1:num_of_exprement
     
     %% one time simulation
     for t = 1 : 1 : iter
-        %%  ======================= Observation =======================
+       %%  ======================= Observation =======================
         z = B*x;
         z = z + MeasErrZ(:,t);
 

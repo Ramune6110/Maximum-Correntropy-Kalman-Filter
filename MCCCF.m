@@ -1,6 +1,6 @@
 function [xEst, PEst] = MCCCF(xEst, PEst, z, A, B, Q, R, num_vec)
     xEst       = A * xEst;
-    PPred      = A * PEst  * A' + Q;
+    PPred      = A * PEst * A' + Q;
     invers_R   = pinv(R);
     innov      = z - B * xEst;
     norm_innov = sqrt((innov)' * invers_R * (innov));
