@@ -2,8 +2,23 @@ clear
 close all
 clc
 
-%% call system dynamic
-Init_System;
+%% Choice the type of System(Example3ÇÕè„éËÇ≠ã@î\ÇµÇ»Ç¢)
+while true
+    model = input('Please choose the type of System (1 = Example1, 2 = Example2, 3 = Example3): ');
+    switch model
+        case 1
+            model01;
+            break;
+        case 2
+            model02;
+            break;
+        case 3
+            model03;
+            break;
+        otherwise
+            disp('No System');
+    end
+end
 
 %% Choice the type of noise
 while true
@@ -33,7 +48,7 @@ for Numexper = 1:num_of_exprement
         Shot_Noise; 
     elseif flag_noise == 2
         Mix_Noise; 
-    else 
+    elseif flag_noise == 3
         Gaussian_Noise;
     end
     
