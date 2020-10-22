@@ -2,7 +2,7 @@ clear
 close all
 clc
 
-%% Choice the type of System(Example3ÇÕè„éËÇ≠ã@î\ÇµÇ»Ç¢)
+%% Choice the type of System
 while true
     model = input('Please choose the type of System (1 = Example1, 2 = Example2, 3 = Example3): ');
     switch model
