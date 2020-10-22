@@ -25,12 +25,3 @@ P_GSF    = initial_P;  % (GSF)
 N_Enkf = 100;
 no = sqrt(P_EnKF) * repmat(randn(size(xhat6)),1,N_Enkf);
 X_enkf = repmat(xhat6,1,N_Enkf) + no;
-
-%% define some arrays to store the main signal and the esitimation signals
-xhat_CF     = zeros(num_vec,iter); %(C-Filter)
-xhat_MCC_KF = zeros(num_vec,iter); % (MCC_KF)
-xhat_UKF    = zeros(num_vec,iter); % (UKF)
-xhat_EnKF   = zeros(num_vec,iter); % (EnKF)
-xhat_GSF    = zeros(num_vec,iter); % (GSF)
-xhat_MCF    = zeros(num_vec,iter); % (Modified C-Filter)
-x_main      = zeros(num_vec,iter);
