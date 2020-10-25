@@ -2,40 +2,6 @@ clear;
 close all;
 clc
 
-%% Init
-n  = 2;        %number of states
-m  = 1;        %number of measurements
-N  = 100;     %total number of time steps
-F  = [cos(pi/18),-sin(pi/18);sin(pi/18),cos(pi/18)];  %state transition matrix
-H  = [1,1];    %observation matrix
-xTrue = [0;0];    %initial true state
-xEst_KF    = [1;1];    %initial estimated state
-xEst_MCKF  = [1;1];    %initial estimated state
-xEst_LRKF  = [1;1];    %initial estimated state
-PEst_KF    = eye(2);   %initial state covariance
-PEst_MCKF  = eye(2);   %initial state covariance
-PEst_LRKF  = eye(2);   %initial state covariance
-
-Q  = diag([0.01,0.01]);     %covariance matrix of process noise
-R  = 0.01;         %covariance matrix of measurement noi
-
-sV = zeros(n,N);  %true state value
-XEst_KF = zeros(n,N);  %estimated state value
-XEst_MCKF = zeros(n,N);  %estimated state value
-XEst_LRKF = zeros(n,N);  %estimated state value
-zV = zeros(m,N);  %true measurement value
-bV = zeros(1,N);  %iteration number
-LRKF_ita = zeros(1,N);  %iteration number
-
-SE_KF     = zeros(n,N);
-SE_CF     = zeros(n,N);
-SE_LRKF   = zeros(n,N);
-
-W = 1;
-
-MeasErrX = sqrt(Q)*randn(n,N);
-MeasErrZ = sqrt(R)*randn(m,N);
-
 %% type of noise
 while true
     flag_noise = input('Please choose the type of noise (1 = Laplace noise, 2 = Gaussian mixture noise, 3 = Gaussian noise): ');
@@ -43,50 +9,80 @@ while true
         break;
     end
 end
-if flag_noise == 1
-    Laplace_Noise;
-elseif flag_noise == 2
-    Mix_Noise; 
-elseif flag_noise == 3
-    Gaussian_Noise;
-end
 
-%% simulate Kalman FIlter
-for k=1:N
-    
-    % Observation
-    xTrue = F * xTrue + MeasErrX(:, k); %true state update process
-    z = H * xTrue + MeasErrZ(:, k);     %true measurement update process
-    
-    % KF
-    [xEst_KF, PEst_KF] = KF(xEst_KF, PEst_KF, z, F, H, Q, R, n);
-    % MCKF
-    [xEst_MCKF, PEst_MCKF, b] = MCKF(F, xEst_MCKF ,PEst_MCKF ,H, z, Q, R); % KF
-    % LRKF
-    [xEst_LRKF, PEst_LRKF, in, W] = LRKF(xEst_LRKF, PEst_LRKF, z, F, H, Q, R, W);
-    
-    % save data
-    sV(:,k) = xTrue;           %save true state value
-    zV(:,k) = z;               %save true measurement value
-    XEst_KF(:,k)   = xEst_KF;            %save estimated state value
-    XEst_MCKF(:,k) = xEst_MCKF;            %save estimated state value
-    XEst_LRKF(:,k) = xEst_LRKF;            %save estimated state value
-    bV(:,k) = b;               %save iteration number
-    LRKF_ita(:,k) = in;               %save iteration number
-end
+%% Init
+Init_system;
 
-SE_KF(:,:)     = (sV - XEst_KF).^2;
-SE_CF(:,:)     = (sV - XEst_MCKF).^2;
-SE_LRKF(:,:)   = (sV - XEst_LRKF).^2;
+num_of_exprement   = 100; % number of itterations
+
+SE_KF     = zeros(num_of_exprement,n,N);
+SE_CF     = zeros(num_of_exprement,n,N);
+SE_LRKF   = zeros(num_of_exprement,n,N);
+
+%% 100 Monte Carlo simulation
+for Numexper = 1:num_of_exprement
+    
+    disp(['Simulation # ',num2str(Numexper.'),'/',num2str(num_of_exprement)]);
+    
+    % Simulation Init Paramter
+    Init_parameter;
+    
+    sV = zeros(n,N);  %true state value
+    XEST_KF = zeros(n,N);  %estimated state value
+    XEST_CF = zeros(n,N);  %estimated state value
+    XEST_LRKF = zeros(n,N);  %estimated state value
+    zV = zeros(m,N);  %true measurement value
+    bV = zeros(1,N);  %iteration number
+    LRKF_ita = zeros(1,N);  %iteration number
+
+    if flag_noise == 1
+        Laplace_Noise;
+    elseif flag_noise == 2
+        Mix_Noise; 
+    elseif flag_noise == 3
+        Gaussian_Noise;
+    end
+
+    %% simulate Kalman FIlter
+    for k=1:N
+
+        % Observation
+        xTrue = F * xTrue + MeasErrX(:, k); %true state update process
+        z = H * xTrue + MeasErrZ(:, k);     %true measurement update process
+
+        % KF
+        [xEst_KF, PEst_KF] = KF(xEst_KF, PEst_KF, z, F, H, Q, R, n);
+        % MCKF
+        [xEst_MCKF, PEst_MCKF, b] = MCKF(F, xEst_MCKF ,PEst_MCKF ,H, z, Q, R); % KF
+        % LRKF
+        [xEst_LRKF, PEst_LRKF, in, W] = LRKF(xEst_LRKF, PEst_LRKF, z, F, H, Q, R, W);
+
+        % save data
+        sV(:,k + 1) = xTrue;           %save true state value
+        zV(:,k) = z;               %save true measurement value
+        XEST_KF(:,k)   = xEst_KF;            %save estimated state value
+        XEST_CF(:,k) = xEst_MCKF;            %save estimated state value
+        XEST_LRKF(:,k) = xEst_LRKF;            %save estimated state value
+        bV(:,k) = b;               %save iteration number
+        LRKF_ita(:,k) = in;               %save iteration number
+    end
+
+    sV(:, N) = [];
+    
+    SE_KF(Numexper,:,:)     = (sV - XEST_KF).^2;
+    SE_CF(Numexper,:,:)     = (sV - XEST_CF).^2;
+    SE_LRKF(Numexper,:,:)    = (sV - XEST_LRKF).^2;
+    
+end
 
 MSE_KF     = zeros(n,N);
 MSE_CF     = zeros(n,N);
 MSE_LRKF   = zeros(n,N);
 
 for i = 1 : N
-    MSE_KF(:,i)     = sqrt(mean(SE_KF(:,i)))';
-    MSE_CF(:,i)     = sqrt(mean(SE_CF(:,i)))';
-    MSE_LRKF(:,i)     = sqrt(mean(SE_LRKF(:,i)))';
+    MSE_KF(:,i)     = sqrt(mean(SE_KF(:, :, i)))';
+    MSE_CF(:,i)     = sqrt(mean(SE_CF(:, :, i)))';
+    MSE_LRKF(:,i)   = sqrt(mean(SE_LRKF(:, :, i)))';
 end
 
 MMSE_KF     = mean(MSE_KF,2);
@@ -95,14 +91,14 @@ MMSE_LRKF   = mean(MSE_LRKF,2);
 
 %% plot results
 figure(1);
-plot(1:N, sV(1,:),'b-', 1:N,XEst_MCKF(1,:),'r--', 1:N,XEst_KF(1,:),'g--', 1:N,XEst_LRKF(1,:),'m--');
-legend('true','MCKF', 'LRKF');
+plot(1:N, sV(1,:),'b-', 1:N,XEST_CF(1,:),'r--', 1:N,XEST_KF(1,:),'g--', 1:N,XEST_LRKF(1,:),'m--');
+legend('true','MCKF', 'KF', 'LRKF');
 xlabel('{\ittime step k}','Fontsize',15,'Fontname','Times new roman');
 title('state estimate x(1)','Fontsize',15,'Fontname','Times new roman');
 
 figure(2);
-plot(1:N, sV(2,:),'b-', 1:N,XEst_MCKF(2,:),'r--', 1:N,XEst_KF(2,:),'g--', 1:N,XEst_LRKF(2,:),'m--')
-legend('true','MCKF', 'LRKF');
+plot(1:N, sV(2,:),'b-', 1:N,XEST_CF(2,:),'r--', 1:N,XEST_KF(2,:),'g--', 1:N,XEST_LRKF(2,:),'m--')
+legend('true','MCKF', 'KF', 'LRKF');
 xlabel('{\ittime step k}','Fontsize',15,'Fontname','Times new roman');
 title('state estimate x(2)','Fontsize',15,'Fontname','Times new roman');
 
@@ -120,7 +116,17 @@ plot(1:N,bV(1,:),'b--');
 plot(1:N,LRKF_ita(1,:),'m--');
 
 figure(5);
-plot(1:N,SE_CF(1,:),'r--', 1:N,SE_KF(1,:),'g--',1:N,SE_LRKF(1,:),'m--');
+for i = 1:n
+        figure(i + 4);
+        hold on;
+        plot(1:N,MSE_KF(i, :) ,'g','LineWidth',1.0);
+        plot(1:N,MSE_CF(i, :) ,'r','LineWidth',1.0);
+        plot(1:N,MSE_LRKF(i, :) ,'m','LineWidth',1.0);
+        grid on;
+        legend('KF','CF','LRKF','Location','best');
+        xlabel('time');
+        ylabel('Root mean square error');
+ end
 
 %% Table result
 
