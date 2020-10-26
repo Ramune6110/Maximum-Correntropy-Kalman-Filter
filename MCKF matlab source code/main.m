@@ -38,8 +38,8 @@ MeasErrZ = sqrt(R)*randn(m,N);
 
 %% type of noise
 while true
-    flag_noise = input('Please choose the type of noise (1 = Laplace noise, 2 = Gaussian mixture noise, 3 = Gaussian noise): ');
-    if flag_noise == 1 || flag_noise == 2 || flag_noise == 3
+    flag_noise = input('Please choose the type of noise (1 = Laplace noise, 2 = Gaussian mixture noise, 3 = Gaussian noise, 4 = Shot noise): ');
+    if flag_noise == 1 || flag_noise == 2 || flag_noise == 3 || flag_noise == 4
         break;
     end
 end
@@ -49,6 +49,8 @@ elseif flag_noise == 2
     Mix_Noise; 
 elseif flag_noise == 3
     Gaussian_Noise;
+elseif flag_noise == 4
+    Shot_Noise;
 end
 
 %% simulate Kalman FIlter
@@ -106,14 +108,26 @@ legend('true','MCKF', 'LRKF');
 xlabel('{\ittime step k}','Fontsize',15,'Fontname','Times new roman');
 title('state estimate x(2)','Fontsize',15,'Fontname','Times new roman');
 
-f1 =  @(s) 1/sqrt(2*pi*sqrt(Q_n1(1,1)))*(exp((-(s-mu_n1_x(1,1))*(s-mu_n1_x(1,1)))/(2*sqrt(Q_n1(1,1))))+exp((-(s-mu_n2_x(1,1))*(s-mu_n2_x(1,1)))/(2*sqrt(Q_n2(1,1)))));
-f2 =  @(s) 1/sqrt(2*pi*sqrt(R_n1(1,1)))*(exp((-(s-mu_n1_z(1,1))*(s-mu_n1_z(1,1)))/(2*sqrt(R_n1(1,1))))+exp((-(s-mu_n2_z(1,1))*(s-mu_n2_z(1,1)))/(2*sqrt(R_n2(1,1)))));
+if flag_noise == 4
+    figure(3);
+    xlabel('time');
+    ylabel('Value of shot noise');
+    hold on
+    X = index_rand_shot;
+    Y = MeasErrZ(1,index_rand_shot(1:end));
+    for i=1:num_shot_noise
+        bar(X(i)*T,Y(i),1,'b','EdgeColor','b');
+    end
+else 
+    f1 =  @(s) 1/sqrt(2*pi*sqrt(Q_n1(1,1)))*(exp((-(s-mu_n1_x(1,1))*(s-mu_n1_x(1,1)))/(2*sqrt(Q_n1(1,1))))+exp((-(s-mu_n2_x(1,1))*(s-mu_n2_x(1,1)))/(2*sqrt(Q_n2(1,1)))));
+    f2 =  @(s) 1/sqrt(2*pi*sqrt(R_n1(1,1)))*(exp((-(s-mu_n1_z(1,1))*(s-mu_n1_z(1,1)))/(2*sqrt(R_n1(1,1))))+exp((-(s-mu_n2_z(1,1))*(s-mu_n2_z(1,1)))/(2*sqrt(R_n2(1,1)))));
 
-figure(3);
-subplot(2,1,1);
-fplot(f1,[-6,6]);title('pdf of process noise');
-subplot(2,1,2);
-fplot(f2,[-6,6]);title('pdf of measurment noise');
+    figure(3);
+    subplot(2,1,1);
+    fplot(f1,[-6,6]);title('pdf of process noise');
+    subplot(2,1,2);
+    fplot(f2,[-6,6]);title('pdf of measurment noise');
+end
 
 figure(4);
 plot(1:N,bV(1,:),'b--');
