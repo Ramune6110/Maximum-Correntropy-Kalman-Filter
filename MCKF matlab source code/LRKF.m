@@ -1,4 +1,4 @@
-function [xEst, PEst, b, W] = LRKF(xEst, PEst, z, A, B, Q, R, W)
+function [xEst, PEst, K, b, W] = LRKF(xEst, PEst, z, A, B, Q, R, W)
     % Predict
     xPred = A * xEst;
     PPred = A * PEst * A' + Q;

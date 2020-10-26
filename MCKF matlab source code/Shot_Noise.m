@@ -1,8 +1,8 @@
 %%%% Generate Non-guassian Noise(Shot Noise)
-T = 3 ;
-num_shot_noise     = 15;
-start_of_shotnoise = 60;
-index_rand_shot    = [randi([start_of_shotnoise/T N],1,num_shot_noise-1) 21];
+T = 1;
+num_shot_noise     = 20;
+start_of_shotnoise = 1;
+index_rand_shot    = [randi([start_of_shotnoise/T N],1,num_shot_noise-1) 1];
 
 %% In process equation
 for i=1:num_shot_noise
